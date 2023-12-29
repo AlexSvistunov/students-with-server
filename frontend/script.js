@@ -1,34 +1,51 @@
 const tableBody = document.querySelector('.table-body');
 const form = document.querySelector('.form');
 
-const listOfStudents = [
-  {
-    name: 'Алексей',
-    lastName: 'Свистунов',
-    patronym: 'Евгеньевич',
-    birthday: new Date(2004, 4, 30),
-    faculty: 'Инф. системы и технологии',
-    startYear: 2022,
-  },
+const SERVER_URL = 'http://localhost:3000';
 
-  {
-    name: 'Павел',
-    lastName: 'Символоков',
-    patronym: 'Евгеньевич',
-    birthday: new Date(2004, 3, 12),
-    faculty: 'Инф. системы и технологии',
-    startYear: 2022,
-  },
+async function addPersonToSever(obj) {
+  const response = await fetch(SERVER_URL + '/api/students', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(obj),
+  });
+  const data = await response.json();
+  console.log(data);
 
-  {
-    name: 'Сергей',
-    lastName: 'Водопьянов',
-    patronym: 'Эдуардович',
-    birthday: new Date(2003, 10, 18),
-    faculty: 'Прикладная информатика и математика',
-    startYear: 2021,
-  },
-]
+  return data;
+
+}
+
+// const listOfStudents = [
+//   {
+//     name: 'Алексей',
+//     lastName: 'Свистунов',
+//     patronym: 'Евгеньевич',
+//     birthday: new Date(2004, 4, 30),
+//     faculty: 'Инф. системы и технологии',
+//     startYear: 2022,
+//   },
+
+//   {
+//     name: 'Павел',
+//     lastName: 'Символоков',
+//     patronym: 'Евгеньевич',
+//     birthday: new Date(2004, 3, 12),
+//     faculty: 'Инф. системы и технологии',
+//     startYear: 2022,
+//   },
+
+//   {
+//     name: 'Сергей',
+//     lastName: 'Водопьянов',
+//     patronym: 'Эдуардович',
+//     birthday: new Date(2003, 10, 18),
+//     faculty: 'Прикладная информатика и математика',
+//     startYear: 2021,
+//   },
+// ]
+
+const listOfStudents = [];
 
 
 function formatDate(date) {
@@ -45,9 +62,8 @@ function formatDate(date) {
   return dd + '.' + mm + '.' + yy;
 }
 
-
 function render(obj) {
-  for(student of obj) {
+  for(const student of obj) {
     const row = document.createElement('tr');  
     const fullName = document.createElement('td');
     const birthday = document.createElement('td');
@@ -59,10 +75,11 @@ function render(obj) {
     faculty.classList.add('faculty');
     startYear.classList.add('startyear')
 
-    fullName.textContent = student.name + " " + student.lastName +  " " + student.patronym;
-    birthday.textContent = formatDate(student.birthday);
+    fullName.textContent = student.name + " " + student.lastname +  " " + student.surname;
+    // birthday.textContent = formatDate(student.birthday);
+    birthday.textContent = '2000-03-03T13:07:29.554Z';
     faculty.textContent = student.faculty;
-    startYear.textContent = student.startYear;
+    startYear.textContent = student.studyStart;
 
     row.append(fullName);
     row.append(birthday);
@@ -73,7 +90,6 @@ function render(obj) {
   }
 }
 
-render(listOfStudents);
 
 const inputName = document.querySelector('.input__name');
 const inputLastName = document.querySelector('.input__lastname');
@@ -113,23 +129,35 @@ function validateForm(form) {
   
 }
 
-form.addEventListener('submit', function(e) {
+form.addEventListener('submit', async function(e) {
   e.preventDefault();
   const validation = validateForm(this);
   if(validation) {
     console.log('Успех!!');
     const fieldObj = {
       name: inputName.value,
-      lastName: inputLastName.value,
-      patronym: inputPatronym.value,
-      birthday: new Date(inputBirthday.value),
+      lastname: inputLastName.value,
+      surname: inputPatronym.value,
+      // birthday: new Date(inputBirthday.value),
+      birthday: '2000-03-03T13:07:29.554Z',
       faculty: inputFaculty.value,
-      startYear: inputStartYear.value,
+      studyStart: inputStartYear.value,
     }
+
+    // const obj = {
+    //   name: inputName.value,
+    //   surname: inputPatronym.value,
+    //   lastname: inputLastName.value,
+    //   birthday: '2000-03-03T13:07:29.554Z',
+    //   studyStart: inputStartYear.value,
+    //   faculty: inputFaculty.value,
+    // }
   
     tableBody.innerHTML = '';
-    listOfStudents.push(fieldObj);
-    render(listOfStudents);
+    const servObj = await addPersonToSever(fieldObj);
+    listOfStudents.push(servObj);
+    render(listOfStudents)
+    
   }
  
 });
@@ -139,3 +167,9 @@ form.addEventListener('submit', function(e) {
 //работа с классами
 //разобрать date
 //дополнить валидацию
+
+
+// мы при прохождении всех форм - отправляем пользователя на сервер, там проверяется вся правильность и неправильность, дальше мы берем и добавляем в наш массив, что мы отправили,
+// а затем перерендириваем
+
+//нужно рендер перебрать то что есть в джейсоне и отрисовать, тогда при перезагрузке и будет этот эффект(сделать render async и перебирать другое)
